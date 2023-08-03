@@ -49,6 +49,13 @@
             color: #999;
         }
 
+        button {
+            background: black;
+            color: #999;
+            border: 1px solid;
+            font-size: 18px;
+        }
+
         .hidden {
             display: none;
         }
@@ -331,7 +338,7 @@
             },
             {
                 "character": "Ганнибал",
-                "text": "Вернитесь, агент Старлинг. Агент Старлинг! Я никогда бы не допустил этого, неучтимость невыносима!",
+                "text": "Вернитесь, агент Старлинг. Агент Старлинг! Я никогда бы не допустил этого, неучтивость невыносима!",
                 "video": {
                     "start": 407,
                     "end": 414
@@ -392,12 +399,8 @@
             });
         }
 
-        function updateActor() {
-            i = actorSelect.value === 'Ганнибал' || actorSelect.value === 'all' ? 0 : 1;
-        }
-
         function init() {
-            updateActor();
+            i = actorSelect.value === 'Ганнибал' || actorSelect.value === 'all' ? 0 : 1;
 
             scriptContainer.innerHTML = text.map((item, idx) => `<div data-index=${idx}><strong>${item.character}:</strong> ${item.text}</div>`).join('');
             document.querySelector('.script-container').addEventListener('click', e => {
@@ -408,6 +411,16 @@
         }
 
         init();
+
+        function putIInRange() {
+            if (i < 0) {
+                i = 0;
+            }
+
+            if (i >= text.length) {
+                i = text.length - 1;
+            }
+        }
 
         function go(direction = 1) {
             interval && clearInterval(interval);
@@ -431,7 +444,7 @@
             textDiv.innerHTML = `<strong>${current.character}</strong><br>${current.text}`;
             soundCheckbox.checked && speak(current.text);
 
-            if (videoCheckbox.checked && current.video.start) {
+            if (videoCheckbox.checked && current.video && current.video.start) {
                 player.seekTo(current.video.start, true);
                 player.playVideo();
 
@@ -443,27 +456,34 @@
                 }, 50);
             }
 
-            const step = actorSelect.value === 'all' ? 1 : 2;
+            iterate(direction);
+        }
 
-            if (direction === 1) {
-                if (i + step >= text.length) return;
-            } else {
-                if (i - step < 0) return;
+        function iterate(direction = 1) {
+            i += 1 * direction;
+
+            putIInRange();
+
+            if (actorSelect.value === 'all') {
+                return;
             }
 
-            i += step * direction;
-
-            while (!text[i] || !text[i].text) {
+            while (!text[i] || text[i].character !== actorSelect.value || !text[i].text) {
                 i += 1 * direction;
+
+                if (i < 0 || i >= text.length) {
+                    putIInRange();
+                    return;
+                }
             }
         }
 
         actorSelect.addEventListener('change', e => {
-            updateActor();
+            iterate();
         });
 
         videoCheckbox.addEventListener('change', e => {
-            document.querySelector('#player').style = `display: ${videoCheckbox.checked ? 'block' : 'none'}`;
+            document.querySelector('#player').classList.toggle('hidden');
         });
 
         document.body.addEventListener('click', e => {
