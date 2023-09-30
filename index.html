@@ -1,254 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        body {
-            padding: 24px;
-            font-size: 22px;
-            line-height: 1.5;
-            font-family: sans-serif;
-        }
-
-        div {
-            margin-bottom: 12px;
-        }
-
-        #text {
-            margin-bottom: 24px;
-        }
-
-        #before, #after {
-            font-style: italic;
-            font-size: 18px;
-        }
-
-        button {
-            font-size: 28px;
-        }
-    </style>
+    <title>Lonely actor</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="https://unpkg.com/string-similarity/umd/string-similarity.min.js"></script>
 </head>
 
 <body>
-    <div id="before"></div>
-    <div id="text"></div>
-    <div id="after"></div>
-    <div><label><input id="sound" type="checkbox">Озвучивать</label></div>
-    <div><button id="answer">Ответ</button></div>
-    <div><button id="next">Далее</button></div>
-    <script>
-        const text = [
-            {
-                "character": "Женщина",
-                "text": "Вы же сказали, что вы психолог."
-            },
-            {
-                "character": "Мужчина",
-                "text": "Я не говорил, что я психолог."
-            },
-            {
-                "character": "Женщина",
-                "text": "Что вы врете! Я вас спросила — «это вы психолог?» и вы сказали да."
-            },
-            {
-                "character": "Мужчина",
-                "text": "Я вам этого не говорил. Это вы сказали, что я психолог."
-            },
-            {
-                "character": "Женщина",
-                "text": "Тогда почему вы не сказали мне, что я ошиблась? Вы меня обманули."
-            },
-            {
-                "character": "Мужчина",
-                "text": "Ну вообще-то мы все в той или иной степени психологи. Если бы я сказал, что я не психолог, то это тоже было бы враньем. Согласитесь..."
-            },
-            {
-                "character": "Женщина",
-                "action": "Судорожно хватает листок и карандаш. Открывает сумочку, кладет туда карандаш. Пытается встать из-за стола."
-            },
-            {
-                "character": "Мужчина",
-                "text": "Вы куда?"
-            },
-            {
-                "character": "Женщина",
-                "text": "Я сейчас иду в администрацию и говорю, что один из сотрудников обманул меня, ввел в заблуждение, заставил рассказывать о себе интимные подробности и писать всякую ахинею на бумаге."
-            },
-            {
-                "character": "Мужчина",
-                "text": "Я не просил рассказывать мне никаких интимных подробностей. Успокойтесь, пожалуйста."
-            },
-            {
-                "character": "Женщина",
-                "text": "Не надо меня успокаивать. Вас отсюда уволят ко всем чертям, вот тогда я успокоюсь."
-            },
-            {
-                "character": "Мужчина",
-                "text": "Меня никто отсюда не уволит. Я здесь не работаю."
-            },
-            {
-                "character": "Женщина",
-                "action": "На мгновение замирает. Смотрит на мужчину."
-            },
-            {
-                "character": "Женщина",
-                "text": "Что значит не работаете? Вы вообще кто такой?"
-            },
-            {
-                "character": "Мужчина",
-                "text": "Ну вот. Вот! Наконец-то вы задали мне этот вопрос!"
-            },
-            {
-                "character": "Женщина",
-                "text": "Я вас спрашиваю, кто вы такой!",
-                "action": "кричит"
-            },
-            {
-                "character": "Мужчина",
-                "text": "Не кричите. Я вас прошу, успокойтесь."
-            },
-            {
-                "character": "Женщина",
-                "text": "Кто вы такой?",
-                "action": "кричит"
-            },
-            {
-                "character": "Мужчина",
-                "text": "Тарас."
-            },
-            {
-                "character": "Женщина",
-                "action": "Замирает"
-            },
-            {
-                "character": "Женщина",
-                "text": "Какой нахер Тарас! Что ты делаешь в этом кабинете?"
-            },
-            {
-                "character": "Мужчина",
-                "text": "Я здесь работаю."
-            },
-            {
-                "character": "Женщина",
-                "text": "Так, всё. Я иду в администрацию.",
-                "action": "Вскакивает из-за стола. Срывается в сторону двери."
-            },
-            {
-                "character": "Мужчина",
-                "text": "Да в какую администрацию? Этот кабинет не принадлежит клинике. Здесь строительная фирма."
-            },
-            {
-                "character": "Женщина",
-                "text": "Строительная фирма? Как это строительная фирма? Почему вы мне сразу это не сказали?"
-            },
-            {
-                "character": "Мужчина",
-                "text": "А вы что, меня об этом спрашивали?"
-            },
-            {
-                "character": "Женщина",
-                "text": "Так, прекратите валять дурака. Вы сказали, что вы психолог."
-            },
-            {
-                "character": "Мужчина",
-                "text": "Я не говорил, что я психолог."
-            },
-            {
-                "character": "Женщина",
-                "text": "Да, что вы врете! Я вас спросила — «это вы психолог?». Вы ответили да."
-            },
-            {
-                "character": "Мужчина",
-                "text": "Девушка, мы начинаем с вами ходить по кругу. Это не я, это вы сказали, что я психолог."
-            },
-            {
-                "character": "Женщина",
-                "text": "Так почему вы мне не сказали, что вы не психолог, мать вашу, а какая-то гребаная строительная фирма!",
-                "action": "Женщина подрывается назад к столу. Орет"
-            },
-            {
-                "character": "Мужчина",
-                "text": "Я вас очень прошу успокойтесь. Во-первых, мы не какая-то «гребаная строительная фирма», а строительная фирма «Путевка к счастью». А во-вторых, вы меня не спрашивали, строительная мы фирма или психологическая клиника."
-            },
-            {
-                "character": "Женщина",
-                "action": "Женщина изнеможенно стекает на стул. Руки кладет перед собой на стол."
-            },
-            {
-                "character": "Женщина",
-                "text": "Что вам от меня надо?",
-                "action": "Обессилено"
-            },
-            {
-                "character": "Мужчина",
-                "text": "Что мне от вас надо!? Мне от вас ничего не надо. Это вы пришли ко мне."
-            },
-            {
-                "character": "Женщина",
-                "text": "Тогда отпустите меня. Я вас очень прошу."
-            },
-            {
-                "character": "Мужчина",
-                "text": "Так я вас и не держу. Вы можете в любой момент уйти."
-            },
-            {
-                "character": "Женщина",
-                "action": "Некоторое время сидит, пытаясь собраться с силами. Медленно встает из-за стола и двигается в сторону двери."
-            },
-            {
-                "character": "Женщина",
-                "text": "Спасибо."
-            },
-            {
-                "character": "Мужчина",
-                "text": "Мне просто казалось, что я могу вам помочь.",
-                "action": "В спину"
-            },
-            {
-                "character": "Женщина",
-                "action": "С окончательно недоумевающим лицом поворачивается в дверном проеме."
-            },
-            {
-                "character": "Женщина",
-                "text": "Чем вы можете мне помочь? У меня муж мудак. Я вам полчаса об этом душу изливала. Я не знаю, что со всем этим делать. А вы-то чем можете тут помочь?"
-            },
-            {
-                "character": "Мужчина",
-                "text": "Ну как же! Вы же сказали, что у вас треснула раковина и горячий кран нельзя закрыть, что вздулся пол рядом с ванной комнатой, а муж шляется по каким-то другим бабам и в доме ничего не делает. Так мы можем помочь, это как раз в нашей компетенции. Я ж вас поэтому и просил все на листок бумаги записывать. Мы можем полностью и раковину и всю систему водоснабжения поменять. А также половое покрытие у нас сейчас с хорошей скидкой идет."
-            },
-            {
-                "character": "Мужчина",
-                "action": "Мужчина кладет перед Женщиной на стол визитку с надписью «Путевка к счастью» и телефонами."
-            },
-            {
-                "character": "Женщина",
-                "text": "Слушайте, вы... Половое покрытие... Идите на хуй.",
-                "action": "Женщина смотрит на мужчину. Лицо ее абсолютно безэмоционально."
-            }
-        ];
+    <div id="player"></div>
 
-        let i = -1;
-        const textDiv = document.querySelector('#text');
+    <div class="container">
+        <div id="before"></div>
+        <div class="text"></div>
+        <div id="after"></div>
+        <div class="controls">
+            <div>
+                <label>Сценарий
+                    <select id="scripts">
+                        <option value="following">Преследование</option>
+                        <option value="silence-of-lambs">Молчание ягнят</option>
+                        <option value="ticket-to-happiness">Путевка к счастью</option>
+                    </select>
+                </label>
+            </div>
+            <div>
+                <label>Показывать реплики
+                    <select id="actor">
+                        <!-- <option value="Билл">Билла</option>
+                        <option value="Блондинка">Блондинки</option>
+                        <option value="all">Все</option> -->
+                    </select>
+                </label>
+            </div>
+            <div><label><input id="video" type="checkbox" checked="checked">Видео</label></div>
+            <div><label><input id="sound" type="checkbox">Озвучивать роботом</label></div>
+            <button id="showScriptButton">Сценарий</button>
+        </div>
+
+        <div class="script-container hidden"></div>
+    </div>
+    <script>
+        const scriptSelect = document.querySelector('#scripts');
+        const textDiv = document.querySelector('.text');
         const beforeDiv = document.querySelector('#before');
         const afterDiv = document.querySelector('#after');
         const soundCheckbox = document.querySelector('#sound');
-        textDiv.innerHTML = text[i];
+        const videoCheckbox = document.querySelector('#video');
+        const actorSelect = document.querySelector('#actor');
+        const scriptContainer = document.querySelector('.script-container');
 
-        function init() {
-            next();
+        function loadScript(scriptName) {
+            fetch(`./scripts/${scriptName}.json`).then(r => r.json()).then(init);
         }
 
-        init();
+        scriptSelect.addEventListener('change', e => {
+            loadScript(scriptSelect.value);
+        });
 
-        function next(step = 1) {
-            i += step;
+        loadScript(scriptSelect.value);
 
-            while(!text[i] || !text[i].text) {
-                i++;
+        // recognition
+        let finalTranscript = '';
+        let recognizing = false;
+
+        let interval;
+        let i = 0;
+
+        let player;
+
+        let text = [];
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '360',
+                width: '100%',
+                videoId: 'UUwXHkYZ4VQ',
+            });
+        }
+
+        function init(data) {
+            text = data.text;
+
+            const hasVideo = Boolean(data.meta.videoId);
+            videoCheckbox.parentNode.classList.toggle('hidden', !hasVideo);
+            videoCheckbox.checked = hasVideo;
+            toggleVideo();
+
+            // character select init
+            while(actorSelect.options.length) {
+                actorSelect.options.remove(0);
             }
+
+            const characters = Array.from(new Set(text.map(current => current.character).filter(Boolean)));
+            characters.push('all');
+
+            characters.forEach(character => {
+                const option = document.createElement('option');
+                option.setAttribute('value', character);
+                option.innerText = character;
+                actorSelect.options.add(option);
+            });
+
+            i = actorSelect.value === characters[0] || actorSelect.value === 'all' ? 0 : 1;
+
+            scriptContainer.innerHTML = text.map((item, idx) => `<div data-index=${idx}><strong>${item.character}:</strong> ${item.text}</div>`).join('');
+            document.querySelector('.script-container').addEventListener('click', e => {
+                if (e.target.dataset.index === undefined) return;
+
+                i = Number(e.target.dataset.index);
+            });
+        }
+
+        function putIInRange() {
+            if (i < 0) {
+                i = 0;
+            }
+
+            if (i >= text.length) {
+                i = text.length - 1;
+            }
+        }
+
+        function go(direction = 1) {
+            interval && clearInterval(interval);
+
             const prev = text[i - 1];
             const current = text[i];
             const next = text[i + 1];
@@ -263,19 +141,74 @@
             }
 
             if (next && !next.text && next.action) {
-                console.log('next', next);
                 afterDiv.innerHTML = next.character + ': ' + next.action;
             }
             textDiv.innerHTML = `<strong>${current.character}</strong><br>${current.text}`;
+            console.log('soundCheckbox.checked', soundCheckbox.checked, current.text)
             soundCheckbox.checked && speak(current.text);
+
+            if (videoCheckbox && videoCheckbox.checked && current.video && current.video.start) {
+                player.seekTo(current.video.start, true);
+                player.playVideo();
+
+                interval = setInterval(() => {
+                    if (player.getCurrentTime() >= current.video.end) {
+                        player.pauseVideo();
+                        clearInterval(interval);
+                    }
+                }, 50);
+            }
+
+            iterate(direction);
+
+            recognition.start();
         }
 
-        document.querySelector('#next').addEventListener('click', (e) => {
-            next();
+        function iterate(direction = 1) {
+            i += 1 * direction;
+
+            putIInRange();
+
+            if (actorSelect.value === 'all') {
+                return;
+            }
+
+            while (!text[i] || text[i].character !== actorSelect.value || !text[i].text) {
+                i += 1 * direction;
+
+                if (i < 0 || i >= text.length) {
+                    putIInRange();
+                    return;
+                }
+            }
+        }
+
+        actorSelect.addEventListener('change', e => {
+            iterate();
         });
 
-        document.querySelector('#answer').addEventListener('click', (e) => {
-            next(2);
+        function toggleVideo() {
+            document.querySelector('#player').classList.toggle('hidden', !videoCheckbox.checked);
+        }
+
+        videoCheckbox.addEventListener('change', toggleVideo);
+
+        document.body.addEventListener('click', e => {
+            if (e.target.tagName === 'DIV' || e.target.tagName === 'BODY' || e.target.tagName === 'VIDEO') {
+                go();
+            }
+        });
+
+        document.body.addEventListener('keydown', e => {
+            if (e.code === 'ArrowLeft') {
+                go(-1);
+            } else if (e.code === 'ArrowRight' || e.code === 'Space') {
+                go();
+            }
+        });
+
+        document.querySelector('#showScriptButton').addEventListener('click', e => {
+            scriptContainer.classList.toggle('hidden');
         });
 
         let voices = window.speechSynthesis.getVoices();
@@ -288,9 +221,79 @@
             if (!window.speechSynthesis) { return; }
             var utterance = new SpeechSynthesisUtterance(s);
             utterance.lang = 'ru-RU';
+
+            // if (voices.find(v => v.name === 'Yuri') && voices.find(v => v.name === 'Milena')) {
+            //     utterance.voice = text[i].character === characters[0] ? voices.find(v => v.name === 'Yuri') : voices.find(v => v.name === 'Milena');
+            // } else {
+            //     utterance.voice = voices[i % 2];
+            // }
+
             utterance.voice = voices[i % 2];
+
             window.speechSynthesis.speak(utterance);
         };
+
+        const speechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new speechRecognition();
+        // recognition.continuous = true // продолжается ли распознавание речи после получения первого финального результата
+        recognition.interimResults = false // обработка промежуточных результатов
+        // recognition.maxAlternatives = 1 // максимальное количество альтернатив распознанного слова
+        recognition.lang = 'ru-RU'
+
+        recognition.onstart = () => {
+            console.log('Распознавание голоса запущено');
+        }
+
+        recognition.onerror = ({ error }) => {
+            console.error(error);
+        }
+
+        recognition.onend = () => {
+            console.log('Распознавание голоса закончено');
+            // Снова запускаем распознавание, если индикатор имеет значение `true`
+            // if (!recognizing) return;
+            // recognition.start();
+
+            console.log('!!!', finalTranscript);
+
+            const saidIndex = text.findIndex(phrase => {
+                if (!phrase.text || !finalTranscript) return;
+                return stringSimilarity.compareTwoStrings(phrase.text.toLowerCase().replace(/[^а-яё\s]/g, ''), finalTranscript) > 0.4
+            });
+
+            if (saidIndex === -1) {
+                console.log('recognition failed with', finalTranscript);
+            }
+
+            console.log('saidIndex', saidIndex);
+            console.log('found phrase', text[saidIndex]);
+            i = saidIndex + 1;
+
+            finalTranscript = '';
+
+            go();
+        }
+
+        recognition.onresult = (e) => {
+            // Промежуточные результаты обновляются на каждом цикле распознавания
+            let interimTranscript = ''
+            // Перебираем результаты с того места, на котором остановились в прошлый раз
+            for (let i = e.resultIndex; i < e.results.length; i++) {
+                // Атрибут `isFinal` является индикатором того, что речь закончилась
+                if (e.results[i].isFinal) {
+                    // Редактируем промежуточные результаты
+                    // const result = editInterim(e.results[i][0].transcript)
+                    const result = e.results[i][0].transcript
+                    // и добавляем их к финальному результату
+                    finalTranscript += result
+                } else {
+                    // В противном случае, записываем распознанные слова в промежуточный результат
+                    interimTranscript += e.results[i][0].transcript
+                }
+            }
+        }
+
+        recognition.start();
     </script>
 </body>
 

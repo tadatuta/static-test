@@ -1,0 +1,56 @@
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-size: 22px;
+    line-height: 1.5;
+    font-family: sans-serif;
+    background-color: black;
+    color: #ccc;
+}
+
+.container {
+    padding: 12px;
+}
+
+div {
+    margin-bottom: 12px;
+}
+
+.text {
+    margin-bottom: 24px;
+}
+
+#before,
+#after {
+    font-style: italic;
+    font-size: 18px;
+}
+
+.controls {
+    font-size: 18px;
+    padding-top: 12px;
+    color: #999;
+    border-top: 1px solid #999;
+}
+
+select {
+    font-size: 18px;
+    background-color: black;
+    color: #999;
+}
+
+button {
+    background: black;
+    color: #999;
+    border: 1px solid;
+    font-size: 18px;
+}
+
+.hidden {
+    display: none;
+}
