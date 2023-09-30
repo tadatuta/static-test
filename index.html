@@ -20,7 +20,10 @@
             <div>
                 <label>Сценарий
                     <select id="scripts">
-                        <option value="following">Преследование</option>
+                        <option value="following-blond">Преследование: Блондинка</option>
+                        <option value="following-blond2">Преследование: Секс</option>
+                        <option value="following6">Преследование: сцена 6</option>
+                        <option value="neo-trinity">Матрица: Нео и Тринити</option>
                         <option value="silence-of-lambs">Молчание ягнят</option>
                         <option value="ticket-to-happiness">Путевка к счастью</option>
                     </select>
@@ -36,6 +39,7 @@
                 </label>
             </div>
             <div><label><input id="video" type="checkbox" checked="checked">Видео</label></div>
+            <div><label><input id="recognition" type="checkbox" style="display: none;">Распозавать голос</label></div>
             <div><label><input id="sound" type="checkbox">Озвучивать роботом</label></div>
             <button id="showScriptButton">Сценарий</button>
         </div>
@@ -48,6 +52,7 @@
         const beforeDiv = document.querySelector('#before');
         const afterDiv = document.querySelector('#after');
         const soundCheckbox = document.querySelector('#sound');
+        const recognitionCheckbox = document.querySelector('#recognition');
         const videoCheckbox = document.querySelector('#video');
         const actorSelect = document.querySelector('#actor');
         const scriptContainer = document.querySelector('.script-container');
@@ -63,6 +68,7 @@
         loadScript(scriptSelect.value);
 
         // recognition
+        let recognitionInited = false;
         let finalTranscript = '';
         let recognizing = false;
 
@@ -144,7 +150,7 @@
                 afterDiv.innerHTML = next.character + ': ' + next.action;
             }
             textDiv.innerHTML = `<strong>${current.character}</strong><br>${current.text}`;
-            console.log('soundCheckbox.checked', soundCheckbox.checked, current.text)
+            // console.log('soundCheckbox.checked', soundCheckbox.checked, current.text)
             soundCheckbox.checked && speak(current.text);
 
             if (videoCheckbox && videoCheckbox.checked && current.video && current.video.start) {
@@ -161,7 +167,12 @@
 
             iterate(direction);
 
-            recognition.start();
+            if (recognitionCheckbox.checked) {
+                if (!recognitionInited) {
+                    initRecognition();
+                }
+                recognition.start();
+            }
         }
 
         function iterate(direction = 1) {
@@ -233,67 +244,73 @@
             window.speechSynthesis.speak(utterance);
         };
 
-        const speechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new speechRecognition();
-        // recognition.continuous = true // продолжается ли распознавание речи после получения первого финального результата
-        recognition.interimResults = false // обработка промежуточных результатов
-        // recognition.maxAlternatives = 1 // максимальное количество альтернатив распознанного слова
-        recognition.lang = 'ru-RU'
+        function initRecognition() {
+            if (!recognitionCheckbox.checked) return;
 
-        recognition.onstart = () => {
-            console.log('Распознавание голоса запущено');
-        }
+            const speechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new speechRecognition();
+            // recognition.continuous = true // продолжается ли распознавание речи после получения первого финального результата
+            recognition.interimResults = false // обработка промежуточных результатов
+            // recognition.maxAlternatives = 1 // максимальное количество альтернатив распознанного слова
+            recognition.lang = 'ru-RU'
 
-        recognition.onerror = ({ error }) => {
-            console.error(error);
-        }
-
-        recognition.onend = () => {
-            console.log('Распознавание голоса закончено');
-            // Снова запускаем распознавание, если индикатор имеет значение `true`
-            // if (!recognizing) return;
-            // recognition.start();
-
-            console.log('!!!', finalTranscript);
-
-            const saidIndex = text.findIndex(phrase => {
-                if (!phrase.text || !finalTranscript) return;
-                return stringSimilarity.compareTwoStrings(phrase.text.toLowerCase().replace(/[^а-яё\s]/g, ''), finalTranscript) > 0.4
-            });
-
-            if (saidIndex === -1) {
-                console.log('recognition failed with', finalTranscript);
+            recognition.onstart = () => {
+                console.log('Распознавание голоса запущено');
             }
 
-            console.log('saidIndex', saidIndex);
-            console.log('found phrase', text[saidIndex]);
-            i = saidIndex + 1;
+            recognition.onerror = ({ error }) => {
+                console.error(error);
+            }
 
-            finalTranscript = '';
+            recognition.onend = () => {
+                console.log('Распознавание голоса закончено');
+                // Снова запускаем распознавание, если индикатор имеет значение `true`
+                // if (!recognizing) return;
+                // recognition.start();
 
-            go();
-        }
+                console.log('!!!', finalTranscript);
 
-        recognition.onresult = (e) => {
-            // Промежуточные результаты обновляются на каждом цикле распознавания
-            let interimTranscript = ''
-            // Перебираем результаты с того места, на котором остановились в прошлый раз
-            for (let i = e.resultIndex; i < e.results.length; i++) {
-                // Атрибут `isFinal` является индикатором того, что речь закончилась
-                if (e.results[i].isFinal) {
-                    // Редактируем промежуточные результаты
-                    // const result = editInterim(e.results[i][0].transcript)
-                    const result = e.results[i][0].transcript
-                    // и добавляем их к финальному результату
-                    finalTranscript += result
-                } else {
-                    // В противном случае, записываем распознанные слова в промежуточный результат
-                    interimTranscript += e.results[i][0].transcript
+                const saidIndex = text.findIndex(phrase => {
+                    if (!phrase.text || !finalTranscript) return;
+                    return stringSimilarity.compareTwoStrings(phrase.text.toLowerCase().replace(/[^а-яё\s]/g, ''), finalTranscript) > 0.4
+                });
+
+                if (saidIndex === -1) {
+                    console.log('recognition failed with', finalTranscript);
+                }
+
+                console.log('saidIndex', saidIndex);
+                console.log('found phrase', text[saidIndex]);
+                i = saidIndex + 1;
+
+                finalTranscript = '';
+
+                go();
+            }
+
+            recognition.onresult = (e) => {
+                // Промежуточные результаты обновляются на каждом цикле распознавания
+                let interimTranscript = ''
+                // Перебираем результаты с того места, на котором остановились в прошлый раз
+                for (let i = e.resultIndex; i < e.results.length; i++) {
+                    // Атрибут `isFinal` является индикатором того, что речь закончилась
+                    if (e.results[i].isFinal) {
+                        // Редактируем промежуточные результаты
+                        // const result = editInterim(e.results[i][0].transcript)
+                        const result = e.results[i][0].transcript
+                        // и добавляем их к финальному результату
+                        finalTranscript += result
+                    } else {
+                        // В противном случае, записываем распознанные слова в промежуточный результат
+                        interimTranscript += e.results[i][0].transcript
+                    }
                 }
             }
-        }
 
-        recognition.start();
+            recognitionInited = true;
+
+            recognition.start();
+        }
     </script>
 </body>
 
