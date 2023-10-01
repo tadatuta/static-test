@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electric Yuri</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+
+        h1,h3 {
+            font-weight: normal;
+        }
+
+        button {
+            display: block;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: none;
+            border-radius: 5px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Электро Юрий</h1>
+    <div class="container">
+        <audio src="sounds/start1.mp3"></audio>
+        <audio src="sounds/start2.mp3"></audio>
+
+        <audio src="sounds/stop1.mp3"></audio>
+        <audio src="sounds/stop2.mp3"></audio>
+        <audio src="sounds/stop-multy.mp3"></audio>
+
+        <audio src="sounds/try1.mp3"></audio>
+        <audio src="sounds/try2.mp3"></audio>
+        <audio src="sounds/try3.mp3"></audio>
+        <audio src="sounds/try4.mp3"></audio>
+
+        <audio src="sounds/louder1.mp3"></audio>
+        <audio src="sounds/louder2.mp3"></audio>
+        <audio src="sounds/louder3.mp3"></audio>
+        <audio src="sounds/louder4.mp3"></audio>
+        <audio src="sounds/louder5.mp3"></audio>
+        <audio src="sounds/louder5-2.mp3"></audio>
+
+        <audio src="sounds/slower1.mp3"></audio>
+        <audio src="sounds/slower2.mp3"></audio>
+
+        <audio src="sounds/good.mp3"></audio>
+        <audio src="sounds/good2.mp3"></audio>
+
+        <audio src="sounds/fail.mp3"></audio>
+        <audio src="sounds/fail2.mp3"></audio>
+        <audio src="sounds/no-fun.mp3"></audio>
+
+        <audio src="sounds/face1.mp3"></audio>
+        <audio src="sounds/head.mp3"></audio>
+        <audio src="sounds/no-eyes.mp3"></audio>
+
+        <audio src="sounds/anecdote1.mp3"></audio>
+        <audio src="sounds/anecdote2.mp3"></audio>
+        <audio src="sounds/vagina.mp3"></audio>
+        <audio src="sounds/after-sex.mp3"></audio>
+
+        <h3>Начало</h3>
+        <button>Всё, начинайте</button>
+        <button>С самого начала</button>
+
+        <h3>Стоп</h3>
+        <button>Так стоп-стоп, нет, так не пойдет</button>
+        <button>Щас остановлю</button>
+        <button>Друзья, остановлю</button>
+
+        <h3>Попробуй</h3>
+        <button>Попробуй, просто на выдохе говори</button>
+        <button>Ну, в общем пробуй щас как чувствуешь</button>
+        <button>Пробуй, дальше идите</button>
+        <button>Угу, пробуй, пробуй, все хорошо, просто пробуй</button>
+
+        <h3>Не тиши!</h3>
+        <button>Получится громче говорить?</button>
+        <button>Тихо, тихо, очень тихо</button>
+        <button>Тебе не тяжело громко говорить?</button>
+        <button>На выдохе набирай полный живот и говори</button>
+        <button>Не тиши!</button>
+        <button>Говори внятно, четко, понятно</button>
+        <button>Никуда не спеши, основное между слов</button>
+        <button>Тоже не спеши, не спеши!</button>
+
+        <h3>Молодец</h3>
+        <button>Молодец, у тебя неплохо получается здесь</button>
+        <button>Хорошо, окей, окей</button>
+
+        <h3>Плохо</h3>
+        <button>Эти фальстарты съедают возможность реальной игры</button>
+        <button>Боже мой, я вас только полюбил, а вы мне бяку</button>
+        <button>Не расхохатый эти слова</button>
+
+        <h3>Повернуть</h3>
+        <button>Конечно хочется немножко тебя лицом повернуть</button>
+        <button>Держи профильно голову, держи на нас, вот так, да</button>
+        <button>Не надо глазок туда бросать!</button>
+
+        <h3>Анекдоты</h3>
+        <button>Анекдот: ниже</button>
+        <button>Жизнь она как лотерея, вышла замуж за еврея</button>
+        <button>С влагалища давайте нашего любимого</button>
+        <button>После ебли</button>
+    </div>
+    <script>
+        const buttons = document.querySelectorAll('button');
+        const sounds = document.querySelectorAll('audio');
+
+        document.querySelector('.container').addEventListener('click', e => {
+            const pressedButtonIndex = Array.from(buttons).findIndex(button => button === e.target);
+            sounds[pressedButtonIndex].play();
+        });
+    </script>
+</body>
+</html>
