@@ -1,320 +1,284 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lonely actor</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="https://unpkg.com/string-similarity/umd/string-similarity.min.js"></script>
+    <title>Rhythm trainer</title>
 </head>
+<style>
+    body {
+        font-family: sans-serif;
+    }
 
+    .grid {
+        display: grid;
+        grid-template-columns: 50% 50%;
+    }
+
+    .cell {
+        line-height: 180px;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 80px;
+    }
+
+    .lh, .lf {
+        transform: scale(-1, 1);
+    }
+
+    .active {
+        font-size: 120px;
+    }
+
+    .controls div {
+        margin-bottom: 12px;
+    }
+
+    .types button,
+    .random {
+        padding: 6px 12px;
+
+        font-size: 24px;
+        line-height: 32px;
+    }
+
+    button:focus {
+        outline: 5px solid #fc0;
+    }
+
+    input {
+        width: 42px;
+        padding: 6px 12px;
+
+        font-size: 24px;
+        line-height: 32px;
+    }
+
+    .stat,
+    .timer {
+        font-size: 16px;
+    }
+</style>
 <body>
-    <div id="player"></div>
-
-    <div class="container">
-        <div id="before"></div>
-        <div class="text"></div>
-        <div id="after"></div>
-        <div class="controls">
-            <div>
-                <label>Сценарий
-                    <select id="scripts">
-                        <option value="following-blond">Преследование: Блондинка</option>
-                        <option value="following-blond2">Преследование: Секс</option>
-                        <option value="following6">Преследование: сцена 6</option>
-                        <option value="neo-trinity">Матрица: Нео и Тринити</option>
-                        <option value="silence-of-lambs">Молчание ягнят</option>
-                        <option value="idiot">Идиот</option>
-                        <option value="without-dowry">Бесприданница: на корабле</option>
-                        <option value="instinct">Основной инстинкт</option>
-                        <option value="ticket-to-happiness">Путевка к счастью</option>
-                    </select>
-                </label>
-            </div>
-            <div>
-                <label>Показывать реплики
-                    <select id="actor">
-                        <!-- <option value="Билл">Билла</option>
-                        <option value="Блондинка">Блондинки</option>
-                        <option value="all">Все</option> -->
-                    </select>
-                </label>
-            </div>
-            <div><label><input id="video" type="checkbox" checked="checked">Видео</label></div>
-            <div><label><input id="recognition" type="checkbox" style="display: none;">Распозавать голос</label></div>
-            <div><label><input id="sound" type="checkbox">Озвучивать роботом</label></div>
-            <button id="showScriptButton">Сценарий</button>
-        </div>
-
-        <div class="script-container hidden"></div>
+    <div class="grid">
+        <div class="cell lh">🤚</div>
+        <div class="cell rh">🤚</div>
+        <div class="cell lf">🦶</div>
+        <div class="cell rf">🦶</div>
     </div>
-    <script>
-        const scriptSelect = document.querySelector('#scripts');
-        const textDiv = document.querySelector('.text');
-        const beforeDiv = document.querySelector('#before');
-        const afterDiv = document.querySelector('#after');
-        const soundCheckbox = document.querySelector('#sound');
-        const recognitionCheckbox = document.querySelector('#recognition');
-        const videoCheckbox = document.querySelector('#video');
-        const actorSelect = document.querySelector('#actor');
-        const scriptContainer = document.querySelector('.script-container');
+    <div class="controls">
+        <div>
+            <input class="bpm" value="120" type="number" step="10">BPM
+            <label><input class="sound" type="checkbox">metronome</label>
+        </div>
+        <div class="types">
+            <button value="circle">○</button>
+            <button value="parralelVertical">||</button>
+            <button value="parralelHorizontal">=</button>
+            <button value="crossBow">⋈</button>
+            <button value="crossEight">8</button>
+        </div>
+        <div>
+            <input name="random-seq" value="4"> <button class="random" value="random">🎲</button>
+            <label><input type="radio" name="direction" value="left">←</label>
+            <label><input type="radio" name="direction" value="right" checked>→</label>
+        </div>
+        <div><input name="iterations" value="20"> <label><input type="checkbox" value="auto" checked>auto</label></div>
+    </div>
+    <ol class="stat">
 
-        function loadScript(scriptName) {
-            fetch(`./scripts/${scriptName}.json`).then(r => r.json()).then(init);
+    </ol>
+    <div class="timer"></div>
+<!-- 🫱🫲🦶↘︎↖︎↗︎↙︎↓↑←→🤚 -->
+<script>
+(function() {
+    const leftHand = document.querySelector('.lh');
+    const rightHand = document.querySelector('.rh');
+    const leftFoot = document.querySelector('.lf');
+    const rightFoot = document.querySelector('.rf');
+    const bpmInput = document.querySelector('.bpm');
+    const soundCheckbox = document.querySelector('.sound');
+    const directionRadio = document.querySelector('[name="direction"]');
+    const statContainer = document.querySelector('.stat');
+    const timerContainer = document.querySelector('.timer');
+    const autoCheckbox = document.querySelector('input[value="auto"]');
+
+    const types = {
+        circle: [leftHand, leftFoot, rightFoot, rightHand],
+        parralelVertical: [leftHand, leftFoot, rightHand, rightFoot],
+        parralelHorizontal: [leftHand, rightHand, leftFoot, rightFoot],
+        crossBow: [leftHand, rightFoot, rightHand, leftFoot ],
+        crossEight: [leftFoot, rightHand, leftHand, rightFoot],
+        random: null
+    };
+
+    const min = 60 * 1000;
+
+    let intervalId;
+    let timerId;
+    let currentType;
+    let iterationCount = 0;
+    let iterationTimer = 0;
+    let totalTimer = 0;
+
+    function start(type) {
+        if (!type) return;
+        beep(300, 50, 100);
+
+        addStat();
+
+        currentType = type;
+
+        let counter = 0;
+        let bpm = bpmInput.value;
+        const dir = directionRadio.checked ? 1 : -1;
+
+        const typeSeq = types[type] || getRandomSeq();
+
+        clearInterval(intervalId);
+        intervalId = setInterval(() => {
+            document.querySelector('.active')?.classList.remove('active');
+
+            typeSeq[counter].classList.add('active');
+
+            soundCheckbox.checked && beep(100, 399, counter === 0 ? 100 : 40);
+
+            counter += dir;
+            if (counter === 4) {
+                counter = 0;
+                iterationCount++;
+            }
+
+            if (counter === -1) {
+                counter = 3;
+                iterationCount++;
+            }
+
+            if (autoCheckbox.checked && iterationCount >= Number(document.querySelector('[name="iterations"]').value) + 1) {
+                const type = Object.keys(types)[getRandomInt(0, Object.keys(types).length - 1)];
+                document.querySelectorAll('[name="direction"]')[getRandomInt(0, 1)].checked = true;
+
+                document.querySelector(`button[value="${type}"]`).focus();
+                start(type);
+            }
+        }, min / bpm);
+    }
+
+    function addStat() {
+        const statElem = document.createElement('li');
+        statContainer.appendChild(statElem);
+        iterationCount = 0;
+        iterationTimer = 0;
+
+        clearTimeout(timerId);
+        tick();
+    }
+
+    function tick() {
+        timerId = setTimeout(() => {
+            iterationTimer++;
+            totalTimer++;
+
+            const items = document.querySelectorAll('.stat li');
+            items[items.length - 1].innerHTML = `${currentType} ${directionRadio.checked ? '←' : '→'}: ${iterationCount}, ${secToMinStr(iterationTimer)}`;
+
+            timerContainer.innerHTML = `Total time: ${secToMinStr(totalTimer)}`;
+
+            tick();
+        }, 1000);
+    }
+
+    function getRandomSeq(length) {
+        if (!length) {
+            length = document.querySelector('[name="random-seq"]').value;
         }
 
-        scriptSelect.addEventListener('change', e => {
-            loadScript(scriptSelect.value);
+        const seq = [];
+
+        for (let i = 0; i < length; i++) {
+            seq.push(types.circle[getRandomInt(0, 3)]);
+        }
+
+        return seq;
+    }
+
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function secToMinStr(sec) {
+        return `${Math.floor(sec / 60).toString().padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
+    }
+
+    document.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            start(e.target.value);
         });
+    });
 
-        loadScript(scriptSelect.value);
-
-        // recognition
-        let recognitionInited = false;
-        let finalTranscript = '';
-        let recognizing = false;
-
-        let interval;
-        let i = 0;
-
-        let player;
-
-        let text = [];
-
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                height: '360',
-                width: '100%',
-                videoId: 'UUwXHkYZ4VQ',
-            });
+    bpmInput.addEventListener('input', (e) => {
+        if (intervalId) {
+            start(currentType);
         }
+    });
 
-        function init(data) {
-            text = data.text;
-
-            const hasVideo = Boolean(data.meta.videoId);
-            videoCheckbox.parentNode.classList.toggle('hidden', !hasVideo);
-            videoCheckbox.checked = hasVideo;
-            toggleVideo();
-
-            // character select init
-            while(actorSelect.options.length) {
-                actorSelect.options.remove(0);
-            }
-
-            const characters = Array.from(new Set(text.map(current => current.character).filter(Boolean)));
-            characters.push('all');
-
-            characters.forEach(character => {
-                const option = document.createElement('option');
-                option.setAttribute('value', character);
-                option.innerText = character;
-                actorSelect.options.add(option);
-            });
-
-            i = actorSelect.value === characters[0] || actorSelect.value === 'all' ? 0 : 1;
-
-            scriptContainer.innerHTML = text.map((item, idx) => `<div data-index=${idx}><strong>${item.character}:</strong> ${item.text}</div>`).join('');
-            document.querySelector('.script-container').addEventListener('click', e => {
-                if (e.target.dataset.index === undefined) return;
-
-                i = Number(e.target.dataset.index);
-            });
-        }
-
-        function putIInRange() {
-            if (i < 0) {
-                i = 0;
-            }
-
-            if (i >= text.length) {
-                i = text.length - 1;
-            }
-        }
-
-        function go(direction = 1) {
-            interval && clearInterval(interval);
-
-            const prev = text[i - 1];
-            const current = text[i];
-            const next = text[i + 1];
-            beforeDiv.innerHTML = '';
-            afterDiv.innerHTML = '';
-
-            if (prev && !prev.text && prev.action) {
-                beforeDiv.innerHTML = prev.character + ': ' + prev.action;
-            }
-            if (current.action) {
-                beforeDiv.innerHTML += (beforeDiv.innerHTML ? '<br>' : '') + current.character + ': ' + current.action;
-            }
-
-            if (next && !next.text && next.action) {
-                afterDiv.innerHTML = next.character + ': ' + next.action;
-            }
-            textDiv.innerHTML = `<strong>${current.character}</strong><br>${current.text}`;
-            // console.log('soundCheckbox.checked', soundCheckbox.checked, current.text)
-            soundCheckbox.checked && speak(current.text);
-
-            if (videoCheckbox && videoCheckbox.checked && current.video && current.video.start) {
-                player.seekTo(current.video.start, true);
-                player.playVideo();
-
-                interval = setInterval(() => {
-                    if (player.getCurrentTime() >= current.video.end) {
-                        player.pauseVideo();
-                        clearInterval(interval);
-                    }
-                }, 50);
-            }
-
-            iterate(direction);
-
-            if (recognitionCheckbox.checked) {
-                if (!recognitionInited) {
-                    initRecognition();
-                }
-                recognition.start();
-            }
-        }
-
-        function iterate(direction = 1) {
-            i += 1 * direction;
-
-            putIInRange();
-
-            if (actorSelect.value === 'all') {
-                return;
-            }
-
-            while (!text[i] || text[i].character !== actorSelect.value || !text[i].text) {
-                i += 1 * direction;
-
-                if (i < 0 || i >= text.length) {
-                    putIInRange();
-                    return;
-                }
-            }
-        }
-
-        actorSelect.addEventListener('change', e => {
-            iterate();
+    document.querySelectorAll('[name="direction"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            start(currentType);
         });
+    });
+})();
 
-        function toggleVideo() {
-            document.querySelector('#player').classList.toggle('hidden', !videoCheckbox.checked);
+
+
+// The browser will limit the number of concurrent audio contexts
+// So be sure to re-use them whenever you can
+const myAudioContext = new AudioContext();
+
+/**
+ * Helper function to emit a beep sound in the browser using the Web Audio API.
+ *
+ * @param {number} duration - The duration of the beep sound in milliseconds.
+ * @param {number} frequency - The frequency of the beep sound.
+ * @param {number} volume - The volume of the beep sound.
+ *
+ * @returns {Promise} - A promise that resolves when the beep sound is finished.
+ */
+function beep(duration, frequency, volume){
+    return new Promise((resolve, reject) => {
+        // Set default duration if not provided
+        duration = duration || 200;
+        frequency = frequency || 440;
+        volume = volume || 100;
+
+        try{
+            let oscillatorNode = myAudioContext.createOscillator();
+            let gainNode = myAudioContext.createGain();
+            oscillatorNode.connect(gainNode);
+
+            // Set the oscillator frequency in hertz
+            oscillatorNode.frequency.value = frequency;
+
+            // Set the type of oscillator
+            oscillatorNode.type= "square";
+            gainNode.connect(myAudioContext.destination);
+
+            // Set the gain to the volume
+            gainNode.gain.value = volume * 0.01;
+
+            // Start audio with the desired duration
+            oscillatorNode.start(myAudioContext.currentTime);
+            oscillatorNode.stop(myAudioContext.currentTime + duration * 0.001);
+
+            // Resolve the promise when the sound is finished
+            oscillatorNode.onended = () => {
+                resolve();
+            };
+        }catch(error){
+            reject(error);
         }
-
-        videoCheckbox.addEventListener('change', toggleVideo);
-
-        document.body.addEventListener('click', e => {
-            if (e.target.tagName === 'DIV' || e.target.tagName === 'BODY' || e.target.tagName === 'VIDEO') {
-                go();
-            }
-        });
-
-        document.body.addEventListener('keydown', e => {
-            if (e.code === 'ArrowLeft') {
-                go(-1);
-            } else if (e.code === 'ArrowRight' || e.code === 'Space') {
-                go();
-            }
-        });
-
-        document.querySelector('#showScriptButton').addEventListener('click', e => {
-            scriptContainer.classList.toggle('hidden');
-        });
-
-        let voices = window.speechSynthesis.getVoices();
-        setTimeout(function () {
-            voices = window.speechSynthesis.getVoices();
-            voices = voices.filter(v => v.lang === 'ru-RU');
-        }, 300);
-
-        function speak(s) {
-            if (!window.speechSynthesis) { return; }
-            var utterance = new SpeechSynthesisUtterance(s);
-            utterance.lang = 'ru-RU';
-
-            // if (voices.find(v => v.name === 'Yuri') && voices.find(v => v.name === 'Milena')) {
-            //     utterance.voice = text[i].character === characters[0] ? voices.find(v => v.name === 'Yuri') : voices.find(v => v.name === 'Milena');
-            // } else {
-            //     utterance.voice = voices[i % 2];
-            // }
-
-            utterance.voice = voices[i % 2];
-
-            window.speechSynthesis.speak(utterance);
-        };
-
-        function initRecognition() {
-            if (!recognitionCheckbox.checked) return;
-
-            const speechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = new speechRecognition();
-            // recognition.continuous = true // продолжается ли распознавание речи после получения первого финального результата
-            recognition.interimResults = false // обработка промежуточных результатов
-            // recognition.maxAlternatives = 1 // максимальное количество альтернатив распознанного слова
-            recognition.lang = 'ru-RU'
-
-            recognition.onstart = () => {
-                console.log('Распознавание голоса запущено');
-            }
-
-            recognition.onerror = ({ error }) => {
-                console.error(error);
-            }
-
-            recognition.onend = () => {
-                console.log('Распознавание голоса закончено');
-                // Снова запускаем распознавание, если индикатор имеет значение `true`
-                // if (!recognizing) return;
-                // recognition.start();
-
-                console.log('!!!', finalTranscript);
-
-                const saidIndex = text.findIndex(phrase => {
-                    if (!phrase.text || !finalTranscript) return;
-                    return stringSimilarity.compareTwoStrings(phrase.text.toLowerCase().replace(/[^а-яё\s]/g, ''), finalTranscript) > 0.4
-                });
-
-                if (saidIndex === -1) {
-                    console.log('recognition failed with', finalTranscript);
-                }
-
-                console.log('saidIndex', saidIndex);
-                console.log('found phrase', text[saidIndex]);
-                i = saidIndex + 1;
-
-                finalTranscript = '';
-
-                go();
-            }
-
-            recognition.onresult = (e) => {
-                // Промежуточные результаты обновляются на каждом цикле распознавания
-                let interimTranscript = ''
-                // Перебираем результаты с того места, на котором остановились в прошлый раз
-                for (let i = e.resultIndex; i < e.results.length; i++) {
-                    // Атрибут `isFinal` является индикатором того, что речь закончилась
-                    if (e.results[i].isFinal) {
-                        // Редактируем промежуточные результаты
-                        // const result = editInterim(e.results[i][0].transcript)
-                        const result = e.results[i][0].transcript
-                        // и добавляем их к финальному результату
-                        finalTranscript += result
-                    } else {
-                        // В противном случае, записываем распознанные слова в промежуточный результат
-                        interimTranscript += e.results[i][0].transcript
-                    }
-                }
-            }
-
-            recognitionInited = true;
-
-            recognition.start();
-        }
-    </script>
+    });
+}
+</script>
 </body>
-
 </html>
