@@ -29,6 +29,7 @@
                         <option value="without-dowry">Бесприданница: на корабле</option>
                         <option value="instinct">Основной инстинкт</option>
                         <option value="ticket-to-happiness">Путевка к счастью</option>
+                        <option value="trigorin">Монолог Тригорина</option>
                     </select>
                 </label>
             </div>
@@ -92,6 +93,13 @@
 
         function init(data) {
             text = data.text;
+
+            if (data.meta.type === "monologue") {
+                text = text.map(t => ({
+                    character: "",
+                    text: t
+                }));
+            }
 
             const hasVideo = Boolean(data.meta.videoId);
             videoCheckbox.parentNode.classList.toggle('hidden', !hasVideo);
